@@ -5,14 +5,22 @@ import static org.hamcrest.Matchers.is;
 
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import hudson.model.UnprotectedRootAction;
+
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import org.hamcrest.Matchers;
 import org.htmlunit.html.HtmlButton;
+import org.htmlunit.html.HtmlElement;
 import org.htmlunit.html.HtmlForm;
 import org.htmlunit.html.HtmlInput;
+import org.htmlunit.html.HtmlIsIndex;
 import org.htmlunit.html.HtmlListItem;
 import org.htmlunit.html.HtmlPage;
+import org.htmlunit.html.HtmlSelect;
 import org.htmlunit.html.HtmlSpan;
+import org.htmlunit.html.HtmlTextArea;
+import org.htmlunit.javascript.host.xml.FormData;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
@@ -21,6 +29,8 @@ import org.jvnet.hudson.test.TestExtension;
 public class CredentialsSelectHelperTest {
     @Rule
     public JenkinsRule j = new JenkinsRule();
+    private static final HashSet<String> SUBMITTABLE_ELEMENT_NAMES = new HashSet<>(Arrays.asList(HtmlInput.TAG_NAME,
+            HtmlButton.TAG_NAME, HtmlSelect.TAG_NAME, HtmlTextArea.TAG_NAME, HtmlIsIndex.TAG_NAME));
 
     @Test
     public void doAddCredentialsFromPopupWorksAsExpected() throws Exception {
@@ -41,6 +51,17 @@ public class CredentialsSelectHelperTest {
             id.setValue("test");
 
             HtmlButton formSubmitButton = htmlPage.querySelector(".jenkins-button[data-id='ok']");
+            for (final HtmlElement element : form.getPage().getDocumentElement().getHtmlElementDescendants()) {
+                if (SUBMITTABLE_ELEMENT_NAMES.contains(element.getTagName())
+                        ) {
+                    HtmlForm parent = element.getEnclosingForm();
+                    if (parent == form) {
+                        System.err.println(element.getTagName()+"#"+element.getAttributeDirect("name"));
+                    }
+                }
+            }
+            FormData data = new FormData(form);
+            System.out.println(data);
             formSubmitButton.fireEvent("click");
             wc.waitForBackgroundJavaScript(5000);
 

@@ -40,12 +40,14 @@ window.credentials.add = function (e) {
             rsp.text().then((responseText) => {
                 window.credentials.body.innerHTML = responseText;
                 Behaviour.applySubtree(window.credentials.body, false);
-                window.credentials.form = document.getElementById('credentials-dialog-form');
+                const form = window.credentials.form = document.getElementById('credentials-dialog-form');
 				const data = window.credentials.form.dataset;
 				const options = {'title': data['title'], 'okText': data['add'], 'submitButton':false, 'minWidth': '75vw'};
-				dialog.form(window.credentials.form, options)
+				form.querySelector('[name="json"]').remove();
+				form.querySelector('[name="Jenkins-Crumb"]').remove();
+				dialog.form(form, options)
 					.then(window.credentials.addSubmit);
-				window.credentials.form.querySelector('select').focus();
+				form.querySelector('select').focus();
             });
         }
     });
